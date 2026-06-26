@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SmartBagProvider } from "@/context/SmartBagContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased bg-[#0F172A] text-[#F8FAFC]">
-        {children}
+        <SmartBagProvider>{children}</SmartBagProvider>
       </body>
     </html>
   );

@@ -185,3 +185,7 @@ body {
 .sos-button {
   animation: sos-pulse 2s ease infinite;
 }
+
+.sos-text-glow {
+  text-shadow: 0 0 40px rgba(239, 68, 68, 0.8), 0 0 80px rgba(239, 68, 68, 0.4);
+}

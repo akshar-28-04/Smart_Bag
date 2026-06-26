@@ -8,7 +8,9 @@ import {
   BarChart3, Cpu, AlertOctagon, Settings, Menu, X, LogOut,
   Battery, Wifi, ChevronRight, User,
 } from "lucide-react";
-import { DEMO_CHILD, DEMO_DEVICE } from "@/lib/demo-data";
+import { useSmartBag } from "@/hooks/useMQTT";
+import SOSAlertOverlay from "@/components/SOSAlertOverlay";
+import WaitingForDevice from "@/components/WaitingForDevice";
 
 const NAV_ITEMS = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
@@ -24,6 +26,7 @@ const NAV_ITEMS = [
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
+  const { mqttConnected, satellites, gpsFix } = useSmartBag();
 
   return (
     <>
@@ -70,23 +73,25 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
                 AS
               </div>
               <div className="min-w-0">
-                <div className="text-white text-sm font-semibold truncate">{DEMO_CHILD.name}</div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
-                  <span className="text-[#22C55E] text-xs font-medium">Travelling</span>
-                </div>
+              <div className="text-white text-sm font-semibold truncate">SmartBag</div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${mqttConnected ? "bg-[#22C55E] animate-pulse" : "bg-[#EF4444]"} `} />
+                <span className={`text-xs font-medium ${mqttConnected ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
+                  {mqttConnected ? "Online" : "Offline"}
+                </span>
+              </div>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Battery className="w-3.5 h-3.5 text-[#F59E0B]" />
-                <span className="text-[#94A3B8] text-xs">{DEMO_DEVICE.battery}%</span>
+                <MapPin className="w-3.5 h-3.5 text-[#0EA5E9]" />
+                <span className="text-[#94A3B8] text-xs">{gpsFix ? "GPS Fixed" : "No Fix"}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Wifi className="w-3.5 h-3.5 text-[#22C55E]" />
-                <span className="text-[#94A3B8] text-xs">Strong Signal</span>
+                <Wifi className={`w-3.5 h-3.5 ${mqttConnected ? "text-[#22C55E]" : "text-[#EF4444]"}`} />
+                <span className="text-[#94A3B8] text-xs">{satellites} sats</span>
               </div>
-              <div className="text-[#475569] text-xs">{DEMO_DEVICE.id}</div>
+              <div className="text-[#475569] text-xs">SmartBag</div>
             </div>
           </div>
         </div>
@@ -142,6 +147,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   const current = NAV_ITEMS.find((n) => n.href === pathname);
+  const { mqttConnected } = useSmartBag();
 
   return (
     <header className="h-16 bg-[#1E293B]/80 backdrop-blur border-b border-white/5 flex items-center justify-between px-6 flex-shrink-0">
@@ -162,9 +168,11 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
 
       <div className="flex items-center gap-3">
         {/* Live indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-[#22C55E]/20">
-          <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-          <span className="text-[#22C55E] text-xs font-medium">Live</span>
+        <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass border ${mqttConnected ? "border-[#22C55E]/20" : "border-[#EF4444]/20"}`}>
+          <span className={`w-2 h-2 rounded-full ${mqttConnected ? "bg-[#22C55E] animate-pulse" : "bg-[#EF4444]"}`} />
+          <span className={`text-xs font-medium ${mqttConnected ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
+            {mqttConnected ? "Live" : "Disconnected"}
+          </span>
         </div>
 
         {/* Alerts bell */}
@@ -184,14 +192,17 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { connectionStatus } = useSmartBag();
+  const showWaiting = connectionStatus === "disconnected" || connectionStatus === "connecting";
 
   return (
     <div className="flex h-screen bg-[#0F172A] overflow-hidden">
+      <SOSAlertOverlay />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto">
-          {children}
+          {showWaiting ? <WaitingForDevice /> : children}
         </main>
       </div>
     </div>

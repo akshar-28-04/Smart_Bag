@@ -1,20 +1,19 @@
 "use client";
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   AlertOctagon, Phone, Navigation, Share2, MapPin, Clock,
-  User, CheckCircle, Shield,
+  User, Shield, CheckCircle,
 } from "lucide-react";
-import { SOS_EVENT, DEMO_CHILD } from "@/lib/demo-data";
+import { useSmartBag } from "@/hooks/useMQTT";
 
 const MiniMap = dynamic(() => import("@/components/map/MiniMap"), { ssr: false });
 
 export default function SOSPage() {
-  const [resolved, setResolved] = useState(false);
+  const { sosActive, currentPosition, lastUpdate, mqttConnected, gpsStatus } = useSmartBag();
 
-  const triggerTime = new Date(SOS_EVENT.triggerTime);
-  const resolvedTime = new Date(SOS_EVENT.resolvedTime);
+  const triggerTime = lastUpdate ?? new Date();
+  const mapCenter: [number, number] = currentPosition ?? [12.975, 77.597];
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -23,39 +22,34 @@ export default function SOSPage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className={`rounded-3xl p-6 border-2 ${
-          resolved
-            ? "bg-[#22C55E]/10 border-[#22C55E]/40"
-            : "bg-[#EF4444]/10 border-[#EF4444]/40"
+          sosActive
+            ? "bg-[#EF4444]/10 border-[#EF4444]/40"
+            : "bg-[#22C55E]/10 border-[#22C55E]/40"
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 sos-button ${
-            resolved ? "bg-[#22C55E]/20" : "bg-[#EF4444]/20"
-          }`}>
-            {resolved
-              ? <CheckCircle className="w-8 h-8 text-[#22C55E]" />
-              : <AlertOctagon className="w-8 h-8 text-[#EF4444]" />}
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${sosActive ? "sos-button bg-[#EF4444]/20" : "bg-[#22C55E]/20"}`}>
+            {sosActive
+              ? <AlertOctagon className="w-8 h-8 text-[#EF4444]" />
+              : <CheckCircle className="w-8 h-8 text-[#22C55E]" />}
           </div>
           <div className="flex-1">
-            <h1 className={`text-2xl font-extrabold ${resolved ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
-              {resolved ? "✓ SOS Resolved" : "🚨 SOS Alert"}
+            <h1 className={`text-2xl font-extrabold ${sosActive ? "text-[#EF4444]" : "text-[#22C55E]"}`}>
+              {sosActive ? "SOS Alert Active" : "No Active SOS"}
             </h1>
             <p className="text-[#94A3B8] text-sm mt-1">
-              {resolved
-                ? `Resolved at ${resolvedTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`
-                : `Triggered by ${DEMO_CHILD.name} — Immediate attention required`}
+              {sosActive
+                ? `Triggered — ${triggerTime.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`
+                : "All clear — SOS is not active"}
             </p>
           </div>
-          <button
-            onClick={() => setResolved(!resolved)}
-            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
-              resolved
-                ? "bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30 hover:bg-[#EF4444]/30"
-                : "bg-[#22C55E] text-white hover:bg-[#16a34a] shadow-lg"
-            }`}
-          >
-            {resolved ? "Reopen Alert" : "Mark as Resolved"}
-          </button>
+          <div className={`px-5 py-2.5 rounded-xl font-semibold text-sm border ${
+            sosActive
+              ? "bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30 animate-pulse"
+              : "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/30"
+          }`}>
+            {sosActive ? "ACTIVE" : "RESOLVED"}
+          </div>
         </div>
       </motion.div>
 
@@ -74,14 +68,17 @@ export default function SOSPage() {
             </h3>
             <div className="space-y-3">
               {[
-                { label: "SOS Trigger Time", value: triggerTime.toLocaleString("en-IN") },
-                { label: "Child Name",        value: DEMO_CHILD.name },
-                { label: "Device ID",         value: "SB-001" },
-                { label: "Current Address",   value: SOS_EVENT.address },
+                { label: "SOS Status", value: sosActive ? "Active — Immediate attention" : "Resolved / No alert" },
+                { label: "Last Update", value: lastUpdate?.toLocaleString("en-IN") ?? "N/A" },
+                { label: "Device", value: "SmartBag" },
                 {
                   label: "Coordinates",
-                  value: `${SOS_EVENT.location.lat.toFixed(4)}, ${SOS_EVENT.location.lng.toFixed(4)}`,
+                  value: currentPosition
+                    ? `${currentPosition[0].toFixed(6)}, ${currentPosition[1].toFixed(6)}`
+                    : "Acquiring...",
                 },
+                { label: "GPS Status", value: gpsStatus || "No Fix" },
+                { label: "Connection", value: mqttConnected ? "Online" : "Offline" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex flex-col gap-0.5">
                   <span className="text-[#64748B] text-xs">{label}</span>
@@ -91,7 +88,7 @@ export default function SOSPage() {
             </div>
           </motion.div>
 
-          {/* Emergency contacts */}
+          {/* Emergency contacts (static) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -102,7 +99,11 @@ export default function SOSPage() {
               <User className="w-4 h-4 text-[#0EA5E9]" /> Emergency Contacts
             </h3>
             <div className="space-y-3">
-              {SOS_EVENT.emergencyContacts.map((contact, i) => (
+              {[
+                { name: "Priya Sharma (Mother)", phone: "+91 98765 43210", relation: "Mother" },
+                { name: "Raj Sharma (Father)",   phone: "+91 98765 43211", relation: "Father" },
+                { name: "Sunita Verma",          phone: "+91 98765 43212", relation: "Grandparent" },
+              ].map((contact, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 bg-[#0F172A] rounded-xl">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2563EB] to-[#0EA5E9] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                     {contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
@@ -156,16 +157,18 @@ export default function SOSPage() {
               <MapPin className="w-4 h-4 text-[#EF4444]" />
               <span className="text-white font-semibold text-sm">Live Location</span>
               <span className="ml-auto flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse" />
-                <span className="text-[#EF4444] text-xs font-medium">SOS Active</span>
+                <span className={`w-2 h-2 rounded-full ${sosActive ? "bg-[#EF4444] animate-pulse" : "bg-[#22C55E]"}`} />
+                <span className={`text-xs font-medium ${sosActive ? "text-[#EF4444]" : "text-[#22C55E]"}`}>
+                  {sosActive ? "SOS Active" : "Normal"}
+                </span>
               </span>
             </div>
             <div className="h-72">
               <MiniMap
-                center={[SOS_EVENT.location.lat, SOS_EVENT.location.lng]}
+                center={mapCenter}
                 zoom={15}
-                markerColor="#EF4444"
-                markerEmoji="🆘"
+                markerColor={sosActive ? "#EF4444" : "#22C55E"}
+                markerEmoji={sosActive ? "🆘" : "📍"}
               />
             </div>
           </motion.div>
@@ -178,14 +181,13 @@ export default function SOSPage() {
             className="glass rounded-2xl p-5 border border-white/5"
           >
             <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-[#2563EB]" /> Response Timeline
+              <Shield className="w-4 h-4 text-[#2563EB]" /> Status Timeline
             </h3>
             <div className="space-y-4">
               {[
-                { time: "12:30 PM", event: "SOS button pressed by Aarav", color: "#EF4444", done: true },
-                { time: "12:30 PM", event: "Alert sent to all 3 contacts", color: "#F59E0B", done: true },
-                { time: "12:32 PM", event: "Priya Sharma notified via SMS", color: "#0EA5E9", done: true },
-                { time: "12:47 PM", event: "SOS marked resolved by parent",  color: "#22C55E", done: resolved },
+                { time: lastUpdate?.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) ?? "--:--", event: sosActive ? "SOS button pressed" : "System normal", color: sosActive ? "#EF4444" : "#22C55E", done: true },
+                { time: lastUpdate?.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) ?? "--:--", event: mqttConnected ? "Data transmitting" : "Device offline", color: mqttConnected ? "#0EA5E9" : "#F59E0B", done: mqttConnected },
+                { time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }), event: "Monitoring active", color: "#22C55E", done: true },
               ].map(({ time, event, color, done }) => (
                 <div key={event} className="flex gap-3 items-start">
                   <div className="flex flex-col items-center">

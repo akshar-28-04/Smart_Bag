@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Shield, Eye, EyeOff, Mail, Phone, ArrowRight, Chrome } from "lucide-react";
+import { Shield, Eye, EyeOff, Mail, Phone, ArrowRight, Globe } from "lucide-react";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"email" | "phone">("email");
@@ -139,7 +139,7 @@ export default function LoginPage() {
           </div>
 
           <button className="w-full py-3.5 rounded-xl glass border border-white/10 text-white font-medium text-sm flex items-center justify-center gap-3 hover:bg-white/5 transition-colors">
-            <Chrome className="w-4 h-4" />
+            <Globe className="w-4 h-4" />
             Sign in with Google
           </button>
 

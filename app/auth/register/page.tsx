@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Shield, Eye, EyeOff, Mail, Phone, User, Hash, ArrowRight, Chrome, CheckCircle } from "lucide-react";
+import { Shield, Eye, EyeOff, Mail, Phone, User, Hash, ArrowRight, Globe, CheckCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
@@ -104,7 +104,7 @@ export default function RegisterPage() {
                 <div className="flex-1 h-px bg-white/10" />
               </div>
               <button className="w-full py-3.5 rounded-xl glass border border-white/10 text-white font-medium text-sm flex items-center justify-center gap-3 hover:bg-white/5 transition-colors">
-                <Chrome className="w-4 h-4" /> Sign up with Google
+                <Globe className="w-4 h-4" /> Sign up with Google
               </button>
             </motion.div>
           ) : (
