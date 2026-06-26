@@ -40,7 +40,7 @@ export default function RouteHistoryMap() {
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
       {/* Sidebar */}
-      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden">
+      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden max-h-[45vh] lg:max-h-none">
         <div className="p-5 border-b border-white/5">
           <h2 className="text-white font-bold text-lg mb-1">Route History</h2>
           <p className="text-[#64748B] text-xs mb-4">Historical travel data</p>

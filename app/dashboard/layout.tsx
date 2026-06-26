@@ -27,7 +27,7 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const { mqttConnected } = useSmartBag();
 
   return (
-    <header className="h-16 bg-[#1E293B]/80 backdrop-blur border-b border-white/5 flex items-center justify-between px-6 flex-shrink-0">
+    <header className="h-16 bg-[#1E293B]/80 backdrop-blur border-b border-white/5 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
@@ -41,7 +41,7 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
           <h1 className="text-white font-semibold text-lg leading-none">
             {NAV_LOOKUP[pathname] ?? "Dashboard"}
           </h1>
-          <p className="text-[#475569] text-xs mt-0.5">
+          <p className="hidden sm:block text-[#475569] text-xs mt-0.5">
             {new Date().toLocaleDateString("en-IN", {
               weekday: "long", year: "numeric", month: "long", day: "numeric",
             })}

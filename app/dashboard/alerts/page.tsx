@@ -154,7 +154,7 @@ export default function AlertsPage() {
   const unread = liveAlerts.length;
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

@@ -79,7 +79,7 @@ export default function DeviceHealthPage() {
     : null;
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-white font-bold text-xl">Device Health</h2>
         <p className="text-[#64748B] text-sm mt-0.5">SmartBag — Real-time diagnostics</p>

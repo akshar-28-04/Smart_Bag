@@ -77,7 +77,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto space-y-8 pb-24">
+    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-8 pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <h2 className="text-white font-bold text-2xl">Settings</h2>

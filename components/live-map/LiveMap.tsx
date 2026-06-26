@@ -174,7 +174,7 @@ export default function LiveMap() {
   return (
     <div id="live-map-container" className="flex flex-col lg:flex-row h-[calc(100vh-64px)] relative">
       {/* Left Panel */}
-      <div className="w-full lg:w-[350px] bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 overflow-y-auto flex-shrink-0">
+      <div className="w-full lg:w-[350px] bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 overflow-y-auto flex-shrink-0 max-h-[45vh] lg:max-h-none">
         <div className="p-5">
           <h2 className="text-white font-bold text-lg mb-1">Current Status</h2>
           <p className="text-[#64748B] text-xs mb-4">
@@ -281,7 +281,7 @@ export default function LiveMap() {
 
       {/* Bottom floating status strip */}
       <div className="absolute bottom-4 left-4 right-4 pointer-events-none z-[1000]">
-        <div className="glass-strong rounded-2xl px-5 py-3 border border-white/10 flex items-center justify-between gap-4 max-w-3xl mx-auto pointer-events-auto">
+        <div className="glass-strong rounded-2xl px-3 sm:px-5 py-2 sm:py-3 border border-white/10 flex items-center justify-center sm:justify-between gap-2 sm:gap-4 max-w-3xl mx-auto pointer-events-auto flex-wrap">
           <StatusBadge label="GPS" active={gpsFix} color="#0EA5E9" />
           <StatusBadge label="MQTT" active={mqttConnected} color="#2563EB" />
           <StatusBadge label="Firebase" active={true} color="#22C55E" />

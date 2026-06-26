@@ -448,7 +448,7 @@ export default function SafeZonesMap() {
   return (
     <div id="safe-zones-map-container" className="flex flex-col lg:flex-row h-[calc(100vh-64px)] relative">
       {/* Sidebar */}
-      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden">
+      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden max-h-[45vh] lg:max-h-none">
         <div className="p-5 border-b border-white/5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-white font-bold text-lg">Safe Zones</h2>
@@ -711,7 +711,7 @@ export default function SafeZonesMap() {
 
         {/* Legend */}
         {safeZones.length > 0 && (
-          <div className="absolute top-4 right-4 rounded-2xl p-4 border border-white/10 shadow-lg"
+          <div className="absolute top-4 left-4 md:right-4 md:left-auto rounded-2xl p-3 sm:p-4 border border-white/10 shadow-lg"
             style={{ backgroundColor: "#1E293B" }}>
             <div className="text-white text-xs font-semibold mb-3 flex items-center gap-2">
               <Shield className="w-3 h-3 text-[#2563EB]" /> Zone Legend

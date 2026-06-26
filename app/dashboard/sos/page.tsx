@@ -18,7 +18,7 @@ export default function SOSPage() {
   const mapCenter: [number, number] = currentPosition ?? [12.975, 77.597];
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
       {/* Emergency header */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -131,7 +131,7 @@ export default function SOSPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-3 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3"
           >
             <button className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#22C55E]/10 border border-[#22C55E]/20 hover:bg-[#22C55E]/20 transition-colors group">
               <Phone className="w-6 h-6 text-[#22C55E]" />
