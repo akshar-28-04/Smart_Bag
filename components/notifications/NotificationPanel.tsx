@@ -57,7 +57,7 @@ export default function NotificationPanel() {
     <div ref={panelRef} className="relative z-[100]">
       <button
         onClick={() => setOpen(!open)}
-        className="relative w-9 h-9 rounded-xl glass border border-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+        className="relative w-9 h-9 min-w-[36px] rounded-xl glass border border-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
       >
         <Bell className="w-4 h-4 text-[#94A3B8]" />
         {unreadCount > 0 && (
@@ -74,8 +74,8 @@ export default function NotificationPanel() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-white/10 shadow-2xl z-[200] overflow-hidden max-h-[70vh] flex flex-col"
-            style={{ backgroundColor: "#1E293B" }}
+            className="fixed sm:absolute right-4 sm:right-0 top-16 sm:top-full sm:mt-2 left-4 sm:left-auto rounded-2xl border border-white/10 shadow-2xl z-[200] overflow-hidden max-h-[70vh] flex flex-col"
+            style={{ backgroundColor: "#1E293B", width: "auto", maxWidth: "90vw" }}
           >
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between flex-shrink-0">

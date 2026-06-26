@@ -446,9 +446,9 @@ export default function SafeZonesMap() {
   }, []);
 
   return (
-    <div id="safe-zones-map-container" className="flex flex-col lg:flex-row h-[calc(100vh-64px)] relative">
+    <div id="safe-zones-map-container" className="flex flex-col lg:flex-row relative">
       {/* Sidebar */}
-      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden max-h-[45vh] lg:max-h-none">
+      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden order-2 lg:order-1">
         <div className="p-5 border-b border-white/5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-white font-bold text-lg">Safe Zones</h2>
@@ -602,7 +602,7 @@ export default function SafeZonesMap() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative order-1 lg:order-2 min-h-[45vh] lg:min-h-0">
         <MapContainer
           center={livePosition ?? DEFAULT_CENTER}
           zoom={15}
@@ -728,6 +728,116 @@ export default function SafeZonesMap() {
           </div>
         )}
       </div>
+
+      {/* Mobile creation bottom sheet */}
+      <AnimatePresence>
+        {selecting && creationPos && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            className="fixed inset-x-0 bottom-0 z-[200] rounded-t-2xl border-t border-white/10 shadow-2xl lg:hidden max-h-[85vh] overflow-y-auto"
+            style={{ backgroundColor: "#1E293B" }}
+          >
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">
+                  {editingZoneId ? "Edit Safe Zone" : "Create Safe Zone"}
+                </h3>
+                <button
+                  onClick={() => { setSelecting(false); setCreationPos(null); setEditingZoneId(null); }}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="text-[#64748B] text-xs block mb-1">Zone Name</label>
+                <input
+                  value={creationName}
+                  onChange={(e) => setCreationName(e.target.value)}
+                  placeholder="e.g. Home, School"
+                  className="w-full bg-[#0F172A] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm min-h-[44px]"
+                />
+              </div>
+
+              {/* Radius */}
+              <div>
+                <label className="text-[#64748B] text-xs block mb-1">Radius: {creationRadius}m</label>
+                <div className="flex gap-1.5 flex-wrap mb-2">
+                  {PRESET_RADII.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setCreationRadius(r)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] ${creationRadius === r ? "bg-[#2563EB] text-white" : "bg-[#0F172A] text-[#94A3B8] border border-white/10"}`}
+                    >
+                      {r}m
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={1000}
+                  value={creationRadius}
+                  onChange={(e) => setCreationRadius(Number(e.target.value))}
+                  className="w-full accent-[#2563EB]"
+                />
+              </div>
+
+              {/* Color */}
+              <div>
+                <label className="text-[#64748B] text-xs block mb-1">Zone Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  {ZONE_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setCreationColor(c)}
+                      className="w-9 h-9 min-w-[36px] rounded-full border-2 transition-all"
+                      style={{
+                        backgroundColor: c,
+                        borderColor: creationColor === c ? "#fff" : "transparent",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-[#64748B] text-xs block mb-1">Description (optional)</label>
+                <textarea
+                  value={creationDescription}
+                  onChange={(e) => setCreationDescription(e.target.value)}
+                  placeholder="Add a note about this zone..."
+                  rows={2}
+                  className="w-full bg-[#0F172A] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm resize-none min-h-[44px]"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => { setSelecting(false); setCreationPos(null); setEditingZoneId(null); setCreationName(""); setCreationDescription(""); setCreationRadius(100); setCreationColor("#2563EB"); }}
+                  className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-[#94A3B8] text-sm font-medium min-h-[44px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveZone}
+                  disabled={!creationName.trim() || !creationPos}
+                  className="flex-1 px-4 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold min-h-[44px] disabled:opacity-40"
+                >
+                  {editingZoneId ? "Update Zone" : "Save Zone"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Delete confirmation */}
       <AnimatePresence>
