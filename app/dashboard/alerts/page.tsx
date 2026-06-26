@@ -2,11 +2,10 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bell, CheckCircle, AlertTriangle, AlertOctagon, Wifi, MapPin,
-  Filter, Check, Clock,
+  Bell, Check, CheckCircle, AlertTriangle, AlertOctagon, Clock, Trash2, X,
 } from "lucide-react";
 import { useSmartBag } from "@/hooks/useMQTT";
-import { DEMO_ALERTS } from "@/lib/demo-data";
+import { useFirebase } from "@/hooks/useFirebase";
 
 const FILTERS = ["All", "Success", "Warning", "Danger", "Info"] as const;
 type FilterType = (typeof FILTERS)[number];
@@ -78,8 +77,9 @@ function AlertCard({
 
 export default function AlertsPage() {
   const [filter, setFilter] = useState<FilterType>("All");
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { sosActive, connectionStatus, mqttConnected, lastUpdate } = useSmartBag();
+  const { alerts: fbAlerts, clearAlerts } = useFirebase();
 
   const liveAlerts = useMemo(() => {
     const alerts: { id: string; title: string; message: string; severity: string; timestamp: Date; type: string }[] = [];
@@ -129,20 +129,20 @@ export default function AlertsPage() {
     return alerts;
   }, [sosActive, connectionStatus, lastUpdate]);
 
-  const seedAlerts = useMemo(
+  const fbAlertList = useMemo(
     () =>
-      DEMO_ALERTS.slice(0, 6).map((a) => ({
-        id: a.id,
+      (fbAlerts ?? []).map((a, idx) => ({
+        id: `fb-${idx}`,
         title: a.title,
-        message: a.message,
+        message: a.description,
         severity: a.severity,
         timestamp: new Date(a.timestamp),
         type: a.type,
       })),
-    []
+    [fbAlerts]
   );
 
-  const allAlerts = useMemo(() => [...liveAlerts, ...seedAlerts], [liveAlerts, seedAlerts]);
+  const allAlerts = useMemo(() => [...liveAlerts, ...fbAlertList], [liveAlerts, fbAlertList]);
 
   const filtered = useMemo(() => {
     return allAlerts.filter((a) => {
@@ -154,7 +154,7 @@ export default function AlertsPage() {
   const unread = liveAlerts.length;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-[1600px] mx-auto">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -168,6 +168,14 @@ export default function AlertsPage() {
             {unread > 0 && <span className="text-[#EF4444] ml-2">• {unread} active</span>}
           </p>
         </div>
+        {allAlerts.length > 0 && (
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-[#EF4444] border border-[#EF4444]/30 hover:bg-[#EF4444]/10 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Clear Timeline
+          </button>
+        )}
       </motion.div>
 
       {/* Filter chips */}
@@ -200,7 +208,7 @@ export default function AlertsPage() {
 
       {/* Timeline */}
       <AnimatePresence mode="wait">
-        <motion.div key={filter + showUnreadOnly}>
+        <motion.div key={filter}>
           {filtered.length === 0 ? (
             <div className="text-center py-16">
               <Bell className="w-12 h-12 text-[#334155] mx-auto mb-3" />
@@ -212,6 +220,39 @@ export default function AlertsPage() {
             ))
           )}
         </motion.div>
+      </AnimatePresence>
+
+      {/* Clear confirmation */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60"
+            onClick={() => setShowConfirm(false)}
+          >
+            <div
+              className="rounded-2xl border border-white/10 shadow-2xl w-full max-w-xs mx-4 p-6"
+              style={{ backgroundColor: "#1E293B" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-white font-semibold mb-2">Clear Alert Timeline?</h3>
+              <p className="text-[#94A3B8] text-sm mb-6">All alerts will be permanently deleted from Firebase.</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setShowConfirm(false)} className="px-4 py-2 rounded-xl border border-white/10 text-[#94A3B8] text-sm">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { clearAlerts(); setShowConfirm(false); }}
+                  className="px-4 py-2 rounded-xl bg-[#EF4444] text-white text-sm font-semibold"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

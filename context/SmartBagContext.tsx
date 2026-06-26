@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { connect, disconnect, on } from "@/lib/mqtt";
+import { updateAnalytics, isFirebaseAvailable } from "@/services/firebase";
+import { haversineKm } from "@/services/analytics";
 import type {
   GPSPoint,
   SmartBagState,
@@ -16,23 +18,6 @@ import type {
 } from "@/types/smartbag";
 
 const MAX_HISTORY = 100;
-
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 export const SmartBagContext = createContext<SmartBagState | null>(null);
 
@@ -56,6 +41,11 @@ export function SmartBagProvider({ children }: { children: ReactNode }) {
 
   const distanceRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
+  const speedCountRef = useRef(0);
+  const speedSumRef = useRef(0);
+  const speedMaxRef = useRef(0);
+  const lastPointRef = useRef<{ lat: number; lng: number } | null>(null);
+  const fbAvailable = isFirebaseAvailable();
 
   const handleLocation = useCallback((data: MQTTLocationPayload) => {
     const pos: [number, number] = [data.latitude, data.longitude];
@@ -75,37 +65,47 @@ export function SmartBagProvider({ children }: { children: ReactNode }) {
     setGpsStatus(data.gpsStatus);
     setLastUpdate(new Date(now));
 
+    // Track distance using ref (no setState in render)
+    if (lastPointRef.current) {
+      distanceRef.current += haversineKm(
+        lastPointRef.current.lat,
+        lastPointRef.current.lng,
+        data.latitude,
+        data.longitude
+      );
+    }
+    lastPointRef.current = { lat: data.latitude, lng: data.longitude };
+    setDistanceTravelled(distanceRef.current);
+
+    // Track speed stats using refs
+    speedSumRef.current += data.speed;
+    speedCountRef.current += 1;
+    if (data.speed > speedMaxRef.current) speedMaxRef.current = data.speed;
+    setAverageSpeed(speedSumRef.current / speedCountRef.current);
+    setMaxSpeed(speedMaxRef.current);
+
+    // Track duration
+    if (startTimeRef.current === null) startTimeRef.current = now;
+    const duration = (now - startTimeRef.current) / 60000;
+    setJourneyDuration(duration);
+
+    // Firebase analytics write (outside setGpsHistory)
+    if (fbAvailable) {
+      updateAnalytics({
+        distanceToday: distanceRef.current,
+        averageSpeed: speedSumRef.current / speedCountRef.current,
+        maxSpeed: speedMaxRef.current,
+        tripDuration: duration,
+      });
+    }
+
+    // Append to history (pure: no side effects inside updater)
     setGpsHistory((prev) => {
       const next = [...prev, point];
       if (next.length > MAX_HISTORY) next.splice(0, next.length - MAX_HISTORY);
-
-      if (next.length >= 2) {
-        const last = next[next.length - 2];
-        const seg = haversineKm(
-          last.latitude,
-          last.longitude,
-          data.latitude,
-          data.longitude
-        );
-        distanceRef.current += seg;
-        setDistanceTravelled(distanceRef.current);
-      }
-
-      if (startTimeRef.current === null) {
-        startTimeRef.current = now;
-      }
-
-      setJourneyDuration((now - startTimeRef.current) / 60000);
-
-      const speeds = next.map((p) => p.speed);
-      setAverageSpeed(
-        speeds.reduce((a, b) => a + b, 0) / speeds.length
-      );
-      setMaxSpeed(Math.max(...speeds));
-
       return next;
     });
-  }, []);
+  }, [fbAvailable]);
 
   const handleSos = useCallback((active: boolean) => {
     setSosActive(active);

@@ -6,17 +6,19 @@ import {
   User, Shield, CheckCircle,
 } from "lucide-react";
 import { useSmartBag } from "@/hooks/useMQTT";
+import { useFirebase } from "@/hooks/useFirebase";
 
 const MiniMap = dynamic(() => import("@/components/map/MiniMap"), { ssr: false });
 
 export default function SOSPage() {
   const { sosActive, currentPosition, lastUpdate, mqttConnected, gpsStatus } = useSmartBag();
+  const { user } = useFirebase();
 
   const triggerTime = lastUpdate ?? new Date();
   const mapCenter: [number, number] = currentPosition ?? [12.975, 77.597];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
       {/* Emergency header */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -88,7 +90,7 @@ export default function SOSPage() {
             </div>
           </motion.div>
 
-          {/* Emergency contacts (static) */}
+          {/* Emergency contacts (from Firebase) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -99,25 +101,26 @@ export default function SOSPage() {
               <User className="w-4 h-4 text-[#0EA5E9]" /> Emergency Contacts
             </h3>
             <div className="space-y-3">
-              {[
-                { name: "Priya Sharma (Mother)", phone: "+91 98765 43210", relation: "Mother" },
-                { name: "Raj Sharma (Father)",   phone: "+91 98765 43211", relation: "Father" },
-                { name: "Sunita Verma",          phone: "+91 98765 43212", relation: "Grandparent" },
-              ].map((contact, i) => (
+              {(user?.emergencyContacts && user.emergencyContacts.length > 0
+                ? user.emergencyContacts
+                : [{ name: "No contacts", phone: "", relation: "Add contacts in settings" }]
+              ).map((contact, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 bg-[#0F172A] rounded-xl">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2563EB] to-[#0EA5E9] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                    {contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    {contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2) || "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-white text-sm font-medium truncate">{contact.name}</div>
-                    <div className="text-[#64748B] text-xs">{contact.relation} • {contact.phone}</div>
+                    <div className="text-[#64748B] text-xs">{contact.relation}{contact.phone ? ` • ${contact.phone}` : ""}</div>
                   </div>
-                  <a
-                    href={`tel:${contact.phone}`}
-                    className="w-8 h-8 rounded-xl bg-[#22C55E]/20 flex items-center justify-center text-[#22C55E] hover:bg-[#22C55E]/30 transition-colors flex-shrink-0"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </a>
+                  {contact.phone && (
+                    <a
+                      href={`tel:${contact.phone}`}
+                      className="w-8 h-8 rounded-xl bg-[#22C55E]/20 flex items-center justify-center text-[#22C55E] hover:bg-[#22C55E]/30 transition-colors flex-shrink-0"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

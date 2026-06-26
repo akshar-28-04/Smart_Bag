@@ -2,9 +2,10 @@
 import { motion } from "framer-motion";
 import {
   Wifi, MapPin, Clock, Cpu, TrendingUp, Shield,
-  CheckCircle, XCircle, AlertTriangle, Satellite,
+  CheckCircle, XCircle, Satellite, Signal,
 } from "lucide-react";
 import { useSmartBag } from "@/hooks/useMQTT";
+import { useFirebase } from "@/hooks/useFirebase";
 
 function StatusRow({
   icon: Icon, label, value, status, color, delay,
@@ -20,7 +21,8 @@ function StatusRow({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay }}
-      className="flex items-center gap-4 p-4 glass rounded-2xl border border-white/5 hover:border-white/10 transition-all"
+      className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all"
+      style={{ backgroundColor: "#0F172A" }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}20` }}>
         <Icon className="w-5 h-5" style={{ color }} />
@@ -56,18 +58,28 @@ function SatelliteBars({ count }: { count: number }) {
   );
 }
 
+function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div className="rounded-xl p-4" style={{ backgroundColor: "#0F172A" }}>
+      <div className="text-[#64748B] text-xs mb-1">{label}</div>
+      <div className="text-white font-bold text-lg" style={{ color }}>{value}</div>
+    </div>
+  );
+}
+
 export default function DeviceHealthPage() {
   const {
     gpsFix, satellites, speed, gpsStatus, lastUpdate,
     mqttConnected, connectionStatus, sosActive, currentPosition,
   } = useSmartBag();
+  const { device } = useFirebase();
 
   const heartbeatSeconds = lastUpdate
     ? Math.round((Date.now() - lastUpdate.getTime()) / 1000)
     : null;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-white font-bold text-xl">Device Health</h2>
         <p className="text-[#64748B] text-sm mt-0.5">SmartBag — Real-time diagnostics</p>
@@ -78,9 +90,10 @@ export default function DeviceHealthPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`flex items-center justify-between p-5 glass rounded-2xl border ${
+        className={`flex items-center justify-between p-5 rounded-2xl border ${
           mqttConnected ? "border-[#22C55E]/20" : "border-[#EF4444]/20"
         }`}
+        style={{ backgroundColor: "#0F172A" }}
       >
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -110,73 +123,25 @@ export default function DeviceHealthPage() {
         </div>
       </motion.div>
 
-      {/* Core health indicators */}
+      {/* Quick stats grid */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass rounded-2xl p-6 border border-white/5"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
       >
-        <h3 className="text-white font-semibold mb-4">Core Diagnostics</h3>
-        <div className="grid sm:grid-cols-2 gap-6">
-          {/* GPS Fix */}
-          <div className="bg-[#0F172A] rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[#64748B] text-xs font-medium">GPS Fix Status</div>
-              {gpsFix ? (
-                <span className="flex items-center gap-1.5 text-[#22C55E] text-xs font-semibold">
-                  <CheckCircle className="w-3.5 h-3.5" /> Fixed
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-[#EF4444] text-xs font-semibold">
-                  <XCircle className="w-3.5 h-3.5" /> No Fix
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                gpsFix ? "bg-[#22C55E]/10" : "bg-[#EF4444]/10"
-              }`}>
-                <MapPin className={`w-6 h-6 ${gpsFix ? "text-[#22C55E]" : "text-[#EF4444]"}`} />
-              </div>
-              <div>
-                <div className="text-white font-bold text-lg">{gpsStatus || "No Signal"}</div>
-                <div className="text-[#64748B] text-xs">{gpsFix ? "Lock acquired" : "Acquiring satellites..."}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* MQTT Connection */}
-          <div className="bg-[#0F172A] rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[#64748B] text-xs font-medium">MQTT Connection</div>
-              {mqttConnected ? (
-                <span className="flex items-center gap-1.5 text-[#22C55E] text-xs font-semibold">
-                  <CheckCircle className="w-3.5 h-3.5" /> Connected
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-[#EF4444] text-xs font-semibold">
-                  <XCircle className="w-3.5 h-3.5" /> Disconnected
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                mqttConnected ? "bg-[#22C55E]/10" : "bg-[#EF4444]/10"
-              }`}>
-                <Wifi className={`w-6 h-6 ${mqttConnected ? "text-[#22C55E]" : "text-[#EF4444]"}`} />
-              </div>
-              <div>
-                <div className="text-white font-bold text-lg">
-                  {connectionStatus.charAt(0).toUpperCase() + connectionStatus.slice(1)}
-                </div>
-                <div className="text-[#64748B] text-xs">
-                  {mqttConnected ? "Receiving data" : "Retry every 5s"}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StatCard label="GPS Status" value={gpsFix ? "Fixed" : "No Fix"} color={gpsFix ? "#22C55E" : "#EF4444"} />
+        <StatCard label="Satellites" value={`${satellites}`} color={satellites > 4 ? "#22C55E" : "#F59E0B"} />
+        <StatCard label="Speed" value={`${speed.toFixed(1)} km/h`} color="#0EA5E9" />
+        <StatCard label="MQTT" value={mqttConnected ? "Connected" : "Disconnected"} color={mqttConnected ? "#22C55E" : "#EF4444"} />
+        <StatCard label="GPS Coordinates" value={currentPosition ? `${currentPosition[0].toFixed(4)}, ${currentPosition[1].toFixed(4)}` : "—"} color="#2563EB" />
+        <StatCard label="GPS Status Text" value={gpsStatus || "No Signal"} color={gpsFix ? "#22C55E" : "#EF4444"} />
+        <StatCard label="Firmware" value={device?.firmware ?? "—"} color="#A855F7" />
+        <StatCard label="Restart Reason" value={device?.restartReason ?? "—"} color="#F59E0B" />
+        <StatCard label="WiFi RSSI" value={device?.wifiRSSI != null ? `${device.wifiRSSI} dBm` : "—"} color="#22C55E" />
+        <StatCard label="MQTT Latency" value={device?.mqttLatency != null ? `${device.mqttLatency} ms` : "—"} color="#0EA5E9" />
+        <StatCard label="GPS HDOP" value={device?.gpsHdop != null ? device.gpsHdop.toFixed(1) : "—"} color="#2563EB" />
+        <StatCard label="SOS Status" value={sosActive ? "ACTIVE" : "Normal"} color={sosActive ? "#EF4444" : "#22C55E"} />
       </motion.div>
 
       {/* Satellite visualization */}
@@ -184,7 +149,8 @@ export default function DeviceHealthPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass rounded-2xl p-6 border border-white/5"
+        className="rounded-2xl p-6 border border-white/5"
+        style={{ backgroundColor: "#0F172A" }}
       >
         <h3 className="text-white font-semibold mb-4">Satellite & GPS Details</h3>
         <div className="grid sm:grid-cols-2 gap-6">
@@ -228,36 +194,6 @@ export default function DeviceHealthPage() {
         <StatusRow icon={TrendingUp} label="Current Speed"  value={`${speed.toFixed(1)} km/h`}                                             status="good" color="#F59E0B" delay={0.6} />
         <StatusRow icon={Shield}   label="SOS Status"       value={sosActive ? "SOS ACTIVE" : "Normal"}                                   status={sosActive ? "bad" : "good"} color="#EF4444" delay={0.65} />
       </div>
-
-      {/* Heartbeat visualization */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="glass rounded-2xl p-6 border border-white/5"
-      >
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#0EA5E9]" /> Heartbeat — Last Updates
-        </h3>
-        <div className="flex items-end gap-2 h-20">
-          {[5, 4, 6, 3, 5, 4, 7, 5, 6, 4].map((v, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div
-                className="w-full rounded-t-lg transition-all"
-                style={{
-                  height: `${Math.min(v * 10, 100)}%`,
-                  backgroundColor: v <= 6 ? "#22C55E" : "#F59E0B",
-                  opacity: 0.5 + (i / 10) * 0.5,
-                }}
-              />
-              <div className="text-[#475569] text-xs">{v}s</div>
-            </div>
-          ))}
-        </div>
-        <p className="text-[#475569] text-xs mt-3 text-center">
-          Inter-arrival time (seconds) — last 10 messages
-        </p>
-      </motion.div>
     </div>
   );
 }

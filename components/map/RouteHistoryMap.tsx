@@ -43,7 +43,7 @@ export default function RouteHistoryMap() {
       <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden">
         <div className="p-5 border-b border-white/5">
           <h2 className="text-white font-bold text-lg mb-1">Route History</h2>
-          <p className="text-[#64748B] text-xs mb-4">Historical travel data for Aarav</p>
+          <p className="text-[#64748B] text-xs mb-4">Historical travel data</p>
           {/* Tab bar */}
           <div className="flex rounded-xl bg-[#0F172A] p-1 gap-1">
             {TABS.map((t, i) => (

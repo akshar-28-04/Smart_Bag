@@ -5,7 +5,7 @@ export interface MQTTLocationPayload {
   satellites: number;
   gpsFix: boolean;
   gpsStatus: string;
-  maps: string;
+  maps?: string;
 }
 
 export interface GPSPoint {

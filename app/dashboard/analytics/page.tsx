@@ -1,13 +1,15 @@
 "use client";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  TrendingUp, Clock, MapPin, Zap,
+  TrendingUp, Clock, MapPin, Zap, Trash2,
 } from "lucide-react";
 import { useSmartBag } from "@/hooks/useMQTT";
+import { useFirebase } from "@/hooks/useFirebase";
 
 const CHART_GRID = { stroke: "#1E293B" };
 const CHART_TOOLTIP_STYLE = {
@@ -140,6 +142,8 @@ function StatsPanel() {
 
 export default function AnalyticsPage() {
   const { gpsHistory, distanceTravelled, averageSpeed, maxSpeed, journeyDuration } = useSmartBag();
+  const { clearAnalytics, clearHistory } = useFirebase();
+  const [showClear, setShowClear] = useState(false);
 
   const speedData = gpsHistory.map((p, i) => ({
     label: `#${i + 1}`,
@@ -166,10 +170,24 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h2 className="text-white font-bold text-xl">Analytics</h2>
-        <p className="text-[#64748B] text-sm mt-0.5">Real-time journey metrics from live GPS data</p>
+    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
+        <div>
+          <h2 className="text-white font-bold text-xl">Analytics</h2>
+          <p className="text-[#64748B] text-sm mt-0.5">Real-time journey metrics from live GPS data</p>
+        </div>
+        {gpsHistory.length > 0 && (
+          <button
+            onClick={() => setShowClear(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-[#EF4444] border border-[#EF4444]/30 hover:bg-[#EF4444]/10 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Clear History
+          </button>
+        )}
       </motion.div>
 
       {/* Top stats */}
@@ -210,6 +228,39 @@ export default function AnalyticsPage() {
           <StatsPanel />
         </div>
       </div>
+
+      {/* Clear confirmation */}
+      <AnimatePresence>
+        {showClear && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60"
+            onClick={() => setShowClear(false)}
+          >
+            <div
+              className="rounded-2xl border border-white/10 shadow-2xl w-full max-w-xs mx-4 p-6"
+              style={{ backgroundColor: "#1E293B" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-white font-semibold mb-2">Clear Analytics History?</h3>
+              <p className="text-[#94A3B8] text-sm mb-6">All analytics data and route history will be permanently deleted from Firebase.</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setShowClear(false)} className="px-4 py-2 rounded-xl border border-white/10 text-[#94A3B8] text-sm">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { clearAnalytics(); clearHistory(); setShowClear(false); }}
+                  className="px-4 py-2 rounded-xl bg-[#EF4444] text-white text-sm font-semibold"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

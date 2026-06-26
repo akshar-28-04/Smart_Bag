@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  Shield, MapPin, Bell, Navigation, Clock, Battery, Users, Star,
+  Shield, MapPin, Bell, Navigation, Battery, Users, Star,
   ChevronRight, Wifi, Zap, Lock, TrendingUp, ArrowRight, CheckCircle,
   AlertTriangle, Phone, Play, Menu, X
 } from "lucide-react";
@@ -341,30 +341,30 @@ function HeroSection() {
   );
 }
 
-// ─── Stats Section ────────────────────────────────────────────────────────────
+// ─── Hardware Feature Cards ────────────────────────────────────────────────────
 
-function StatsSection() {
-  const stats = [
+function HardwareFeaturesSection() {
+  const features = [
     {
-      icon: Users,
-      value: "300M+",
-      label: "Children travel to school daily worldwide",
-      sub: "Many without real-time parental visibility",
+      icon: Navigation,
+      value: "10cm",
+      label: "GPS Accuracy",
+      desc: "High-precision NEO-8M GPS module with real-time satellite tracking",
       color: "#2563EB",
     },
     {
-      icon: AlertTriangle,
-      value: "2.5M",
-      label: "Child safety incidents reported annually",
-      sub: "Most preventable with timely alerts",
-      color: "#EF4444",
+      icon: Zap,
+      value: "24h",
+      label: "Battery Life",
+      desc: "ESP32 optimized for ultra-low power consumption with deep sleep mode",
+      color: "#22C55E",
     },
     {
-      icon: Clock,
-      value: "47 min",
-      label: "Average emergency response delay",
-      sub: "SmartBag reduces this to under 3 seconds",
-      color: "#F59E0B",
+      icon: Wifi,
+      value: "4G/LTE",
+      label: "Always Connected",
+      desc: "WiFi + cellular backup ensures uninterrupted data transmission",
+      color: "#0EA5E9",
     },
   ];
 
@@ -377,18 +377,17 @@ function StatsSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-[#0EA5E9] text-sm font-semibold uppercase tracking-widest">The Problem</span>
+          <span className="text-[#0EA5E9] text-sm font-semibold uppercase tracking-widest">The Technology</span>
           <h2 className="text-4xl font-bold text-white mt-3 mb-4">
-            Why Child Safety Cannot Wait
+            Enterprise-Grade IoT Hardware
           </h2>
           <p className="text-[#94A3B8] max-w-2xl mx-auto text-lg">
-            Millions of parents have no idea where their child is during the daily
-            school commute. SmartBag changes that.
+            SmartBag is powered by the ESP32 microcontroller with high-precision GPS, MQTT streaming, and Firebase cloud sync.
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {stats.map((s, i) => (
+          {features.map((s, i) => (
             <motion.div
               key={s.label}
               initial={{ opacity: 0, y: 40 }}
@@ -407,7 +406,7 @@ function StatsSection() {
                 {s.value}
               </div>
               <div className="text-white font-semibold text-lg mb-2">{s.label}</div>
-              <div className="text-[#64748B] text-sm">{s.sub}</div>
+              <div className="text-[#64748B] text-sm">{s.desc}</div>
             </motion.div>
           ))}
         </div>
@@ -1004,7 +1003,7 @@ export default function LandingPage() {
     <main className="min-h-screen bg-[#0F172A]">
       <Navbar />
       <HeroSection />
-      <StatsSection />
+      <HardwareFeaturesSection />
       <SolutionSection />
       <FeaturesSection />
       <ArchitectureSection />
