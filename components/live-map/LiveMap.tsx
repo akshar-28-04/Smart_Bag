@@ -106,10 +106,10 @@ function LocateButton() {
   return (
     <button
       onClick={() => currentPosition && map.setView(currentPosition, map.getZoom())}
-      className="absolute top-20 right-4 z-[1000] w-9 h-9 rounded-xl glass border border-white/10 flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors"
+      className="absolute top-4 right-4 z-[1000] w-11 h-11 lg:w-9 lg:h-9 rounded-xl glass border border-white/10 flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors"
       title="Center on device"
     >
-      <Crosshair className="w-4 h-4" />
+      <Crosshair className="w-5 h-5 lg:w-4 lg:h-4" />
     </button>
   );
 }
@@ -128,10 +128,10 @@ function FullscreenButton() {
           setFs(false);
         }
       }}
-      className="absolute top-32 right-4 z-[1000] w-9 h-9 rounded-xl glass border border-white/10 flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors"
+      className="absolute top-16 lg:top-[72px] right-4 z-[1000] w-11 h-11 lg:w-9 lg:h-9 rounded-xl glass border border-white/10 flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors"
       title="Fullscreen"
     >
-      <Maximize2 className="w-4 h-4" />
+      <Maximize2 className="w-5 h-5 lg:w-4 lg:h-4" />
     </button>
   );
 }
@@ -145,7 +145,7 @@ function StatusCard({
   const dotColors = { good: "#22C55E", warn: "#F59E0B", bad: "#EF4444" };
   return (
     <div className="bg-[#0F172A] rounded-xl p-3 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}15` }}>
+      <div className="w-9 h-9 min-w-[36px] rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}15` }}>
         <Icon className="w-4 h-4" style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
@@ -172,57 +172,9 @@ export default function LiveMap() {
   const routePoints = gpsHistory.map((p) => [p.latitude, p.longitude] as [number, number]);
 
   return (
-    <div id="live-map-container" className="flex flex-col lg:flex-row h-[calc(100vh-64px)] relative">
-      {/* Left Panel */}
-      <div className="w-full lg:w-[350px] bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 overflow-y-auto flex-shrink-0 max-h-[45vh] lg:max-h-none">
-        <div className="p-5">
-          <h2 className="text-white font-bold text-lg mb-1">Current Status</h2>
-          <p className="text-[#64748B] text-xs mb-4">
-            {lastUpdate
-              ? `Updated ${lastUpdate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
-              : "Waiting for data..."}
-          </p>
-
-          <div className="space-y-2">
-            <StatusCard icon={MapPin} label="GPS" value={gpsFix ? gpsStatus || "Fixed" : "No Fix"} color="#0EA5E9" status={gpsFix ? "good" : "bad"} />
-            <StatusCard icon={TrendingUp} label="Speed" value={`${speed.toFixed(1)} km/h`} color="#22C55E" />
-            <StatusCard icon={AlertTriangle} label="SOS" value={sosActive ? "ACTIVE" : "Standby"} color="#EF4444" status={sosActive ? "bad" : "good"} />
-            <StatusCard icon={Satellite} label="Satellites" value={`${satellites}`} color="#A855F7" status={satellites > 4 ? "good" : satellites > 0 ? "warn" : "bad"} />
-            <StatusCard icon={Battery} label="Battery" value="—" color="#F59E0B" />
-            <StatusCard icon={Wifi} label="MQTT" value={mqttConnected ? "Connected" : "Disconnected"} color="#2563EB" status={mqttConnected ? "good" : "bad"} />
-            <StatusCard icon={Signal} label="WiFi" value={mqttConnected ? "Connected" : "Disconnected"} color="#22C55E" status={mqttConnected ? "good" : "bad"} />
-          </div>
-        </div>
-
-        {/* Coordinates & Address */}
-        <div className="px-5 pb-5">
-          <div className="glass rounded-2xl p-4 border border-white/5">
-            <div className="flex items-center gap-2 mb-3">
-              <MapPin className="w-4 h-4 text-[#2563EB]" />
-              <span className="text-white text-xs font-semibold">Location</span>
-            </div>
-            <div className="space-y-2">
-              <div>
-                <div className="text-[#475569] text-[10px] uppercase">Coordinates</div>
-                <div className="text-white text-xs font-mono">
-                  {currentPosition
-                    ? `${currentPosition[0].toFixed(6)}, ${currentPosition[1].toFixed(6)}`
-                    : "Acquiring..."}
-                </div>
-              </div>
-              <div>
-                <div className="text-[#475569] text-[10px] uppercase">Address</div>
-                <div className="text-[#94A3B8] text-xs">
-                  {gpsFix ? "Reverse geocode unavailable" : "No GPS fix"}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Map */}
-      <div className="flex-1 relative min-h-[400px]">
+    <div id="live-map-container" className="flex flex-col lg:flex-row lg:h-[calc(100vh-64px)]">
+      {/* Map section */}
+      <div className="relative w-full lg:flex-1 lg:min-h-0 h-[45vh] lg:h-auto">
         <MapContainer
           center={center}
           zoom={15}
@@ -277,19 +229,82 @@ export default function LiveMap() {
           <LocateButton />
           <FullscreenButton />
         </MapContainer>
+
+        {/* Bottom floating status strip */}
+        <div className="hidden lg:block absolute bottom-2 left-2 right-2 pointer-events-none z-[1000]">
+          <div className="glass-strong rounded-2xl px-3 sm:px-5 py-2 sm:py-3 border border-white/10 flex items-center justify-center sm:justify-between gap-2 sm:gap-4 max-w-3xl mx-auto pointer-events-auto flex-wrap">
+            <StatusBadge label="GPS" active={gpsFix} color="#0EA5E9" />
+            <StatusBadge label="MQTT" active={mqttConnected} color="#2563EB" />
+            <StatusBadge label="Firebase" active={true} color="#22C55E" />
+            <StatusBadge label="ESP32" active={mqttConnected} color="#F59E0B" />
+            <div className="text-[#475569] text-[10px] whitespace-nowrap">
+              {lastUpdate
+                ? `${Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s ago`
+                : "No data"}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom floating status strip */}
-      <div className="absolute bottom-4 left-4 right-4 pointer-events-none z-[1000]">
-        <div className="glass-strong rounded-2xl px-3 sm:px-5 py-2 sm:py-3 border border-white/10 flex items-center justify-center sm:justify-between gap-2 sm:gap-4 max-w-3xl mx-auto pointer-events-auto flex-wrap">
-          <StatusBadge label="GPS" active={gpsFix} color="#0EA5E9" />
-          <StatusBadge label="MQTT" active={mqttConnected} color="#2563EB" />
-          <StatusBadge label="Firebase" active={true} color="#22C55E" />
-          <StatusBadge label="ESP32" active={mqttConnected} color="#F59E0B" />
-          <div className="text-[#475569] text-[10px] whitespace-nowrap">
+      {/* Info Panel */}
+      <div className="w-full lg:w-[350px] bg-[#1E293B] border-t lg:border-t-0 lg:border-l border-white/5 overflow-y-auto flex-shrink-0">
+        <div className="p-4 sm:p-5">
+          <h2 className="text-white font-bold text-lg mb-1">Current Status</h2>
+          <p className="text-[#64748B] text-xs mb-4">
             {lastUpdate
-              ? `${Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s ago`
-              : "No data"}
+              ? `Updated ${lastUpdate.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+              : "Waiting for data..."}
+          </p>
+
+          <div className="space-y-2">
+            <StatusCard icon={MapPin} label="GPS" value={gpsFix ? gpsStatus || "Fixed" : "No Fix"} color="#0EA5E9" status={gpsFix ? "good" : "bad"} />
+            <StatusCard icon={TrendingUp} label="Speed" value={`${speed.toFixed(1)} km/h`} color="#22C55E" />
+            <StatusCard icon={AlertTriangle} label="SOS" value={sosActive ? "ACTIVE" : "Standby"} color="#EF4444" status={sosActive ? "bad" : "good"} />
+            <StatusCard icon={Satellite} label="Satellites" value={`${satellites}`} color="#A855F7" status={satellites > 4 ? "good" : satellites > 0 ? "warn" : "bad"} />
+            <StatusCard icon={Battery} label="Battery" value="—" color="#F59E0B" />
+            <StatusCard icon={Wifi} label="MQTT" value={mqttConnected ? "Connected" : "Disconnected"} color="#2563EB" status={mqttConnected ? "good" : "bad"} />
+            <StatusCard icon={Signal} label="WiFi" value={mqttConnected ? "Connected" : "Disconnected"} color="#22C55E" status={mqttConnected ? "good" : "bad"} />
+          </div>
+        </div>
+
+        {/* Coordinates & Address */}
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+          <div className="glass rounded-2xl p-4 border border-white/5">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-white text-xs font-semibold">Location</span>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <div className="text-[#475569] text-[10px] uppercase">Coordinates</div>
+                <div className="text-white text-xs font-mono break-all">
+                  {currentPosition
+                    ? `${currentPosition[0].toFixed(6)}, ${currentPosition[1].toFixed(6)}`
+                    : "Acquiring..."}
+                </div>
+              </div>
+              <div>
+                <div className="text-[#475569] text-[10px] uppercase">Address</div>
+                <div className="text-[#94A3B8] text-xs">
+                  {gpsFix ? "Reverse geocode unavailable" : "No GPS fix"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile status strip */}
+        <div className="lg:hidden px-4 sm:px-5 pb-4 sm:pb-5">
+          <div className="glass-strong rounded-2xl px-3 py-2.5 border border-white/10 flex items-center justify-center gap-3 flex-wrap">
+            <StatusBadge label="GPS" active={gpsFix} color="#0EA5E9" />
+            <StatusBadge label="MQTT" active={mqttConnected} color="#2563EB" />
+            <StatusBadge label="Firebase" active={true} color="#22C55E" />
+            <StatusBadge label="ESP32" active={mqttConnected} color="#F59E0B" />
+            <div className="text-[#475569] text-[10px] whitespace-nowrap">
+              {lastUpdate
+                ? `${Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s ago`
+                : "No data"}
+            </div>
           </div>
         </div>
       </div>
