@@ -5,7 +5,7 @@ const SafeZonesMap = dynamic(() => import("@/components/map/SafeZonesMap"), { ss
 
 export default function SafeZonesPage() {
   return (
-    <div className="max-w-[1600px] mx-auto">
+    <div className="h-full">
       <SafeZonesMap />
     </div>
   );

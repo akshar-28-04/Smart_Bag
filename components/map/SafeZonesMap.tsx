@@ -166,6 +166,37 @@ function FirstCenterController({ position }: { position: [number, number] | null
   return null;
 }
 
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const el = document.getElementById("safe-zones-map-area");
+    if (!el) return;
+
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    observer.observe(el);
+
+    // Also handle sidebar collapse transitions
+    const sidebarEl = document.getElementById("safe-zones-map-container");
+    if (sidebarEl) {
+      const sidebarObserver = new MutationObserver(() => {
+        setTimeout(() => map.invalidateSize(), 300);
+      });
+      sidebarObserver.observe(sidebarEl, { attributes: true, attributeFilter: ["style", "class"] });
+      return () => {
+        observer.disconnect();
+        sidebarObserver.disconnect();
+      };
+    }
+
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
+
 function LocateButton({ position }: { position: [number, number] | null }) {
   const map = useMap();
 
@@ -446,9 +477,9 @@ export default function SafeZonesMap() {
   }, []);
 
   return (
-    <div id="safe-zones-map-container" className="flex flex-col lg:flex-row relative">
+    <div id="safe-zones-map-container" className="h-full flex flex-col lg:flex-row relative">
       {/* Sidebar */}
-      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden order-2 lg:order-1">
+      <div className="w-full lg:w-80 bg-[#1E293B] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col overflow-hidden order-2 lg:order-1 shrink-0">
         <div className="p-5 border-b border-white/5">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-white font-bold text-lg">Safe Zones</h2>
@@ -602,7 +633,7 @@ export default function SafeZonesMap() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative order-1 lg:order-2 min-h-[45vh] lg:min-h-0">
+      <div id="safe-zones-map-area" className="flex-1 relative order-1 lg:order-2 min-h-[50vh] lg:min-h-0">
         <MapContainer
           center={livePosition ?? DEFAULT_CENTER}
           zoom={15}
@@ -705,6 +736,7 @@ export default function SafeZonesMap() {
             />
           )}
 
+          <MapResizeHandler />
           <LocateButton position={livePosition} />
           <FullscreenButton />
         </MapContainer>
